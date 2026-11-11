@@ -40,9 +40,9 @@ The launcher starts/checks the server on that port and opens http://127.0.0.1:52
 
 ### Desktop controls and look input
 
-- **Day tour:** after starting a visit, hold the left mouse button on the scene and drag to look around. Use `W`, `A`, `S`, `D` or the arrow keys to walk; hold `Shift` to move faster. Starting to walk or drag during a guided visit gives control back to you.
-- **Haunted night:** hold the left mouse button on the scene and drag to look. Use `W`, `A`, `S`, `D` or the arrow keys to walk; hold `Shift` to sprint. `F` toggles the torch, `E` interacts, `Space` kicks, `Q` rings the decoy bell and `M` opens the map.
-- **Known desktop limitation:** looking uses click-and-drag rather than mouse pointer lock. If the cursor reaches a screen edge, release the button, move the cursor back, then drag again to continue turning. Fullscreen can give more room for looking around.
+- **Day tour:** after starting a visit, click the 3D scene once to capture the mouse, then move the mouse directly to look around without holding a button. Press `Esc` once to release the cursor; click the scene again to recapture it. Use `W`, `A`, `S`, `D` or the arrow keys to walk; hold `Shift` to move faster. Starting to walk or look during a guided visit gives control back to you.
+- **Haunted night:** click the 3D scene once to capture the mouse, then move the mouse directly to look. Press `Esc` to release the cursor and click the scene again to recapture it. Use `W`, `A`, `S`, `D` or the arrow keys to walk; hold `Shift` to sprint. `F` toggles the torch, `E` interacts, `Space` kicks, `Q` rings the decoy bell and `M` opens the map.
+- **Touch and fallback:** touch screens, pen input and browsers that do not allow Pointer Lock still use click-and-drag. The cursor is hidden only while Pointer Lock is active.
 
 The original development checkout uses a junction to local Three.js/Vite dependencies; do not delete that node_modules junction recursively. Fresh checkouts create their own dependencies with `npm ci`.
 
