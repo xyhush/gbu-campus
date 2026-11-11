@@ -16,7 +16,7 @@ const placeOrder=Object.keys(places);
 let renderer,world,ready=false,mode='welcome',paused=false,shotPaused=false;
 let reduced=matchMedia('(prefers-reduced-motion: reduce)').matches, sensitivity=1,quality='balanced';
 let tourTime=0,tourDone=false,elapsed=0,lastTime=performance.now(),activePlace='plaza',transitionId=0;
-let yaw=0,pitch=0,targetYaw=0,targetPitch=0,drag=null,toastTimer;
+let yaw=0,pitch=0,targetYaw=0,targetPitch=0,drag=null,locked=false,toastTimer;
 const keys=new Set(),touchMove=new Set(),velocity=new THREE.Vector2();
 const scene=new THREE.Scene();
 scene.background=new THREE.Color('#cbdce2');scene.fog=new THREE.Fog('#cbdce2',180,490);
@@ -101,16 +101,17 @@ document.addEventListener('fullscreenchange',()=>$('fullscreen').setAttribute('a
 
 addEventListener('keydown',e=>{
   if(dialogs.some(d=>d.open))return;if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;
-  const k=e.key.toLowerCase();if(k==='escape'){e.preventDefault();togglePause();return;}if(k==='h'){openDialog('help-dialog');return;}
+  const k=e.key.toLowerCase();if(k==='escape'){if(locked)return;e.preventDefault();togglePause();return;}if(k==='h'){openDialog('help-dialog');return;}
   if(!ready||mode==='welcome')return;
   if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright','q','e','shift'].includes(k)){e.preventDefault();takeOver();keys.add(k);}
 });
 addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
 addEventListener('blur',clearInput);
 document.addEventListener('visibilitychange',()=>{clearInput();if(document.hidden&&mode!=='welcome'){paused=true;syncUI();}audio.pause(document.hidden||paused);});
-canvas.addEventListener('pointerdown',e=>{if(mode==='welcome'||!ready||e.button!==0)return;takeOver();drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);canvas.focus({preventScroll:true});});
-canvas.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==drag.id)return;targetYaw-=(e.clientX-drag.x)*.003*sensitivity;targetPitch-=(e.clientY-drag.y)*.0025*sensitivity;targetPitch=THREE.MathUtils.clamp(targetPitch,-.65,.9);drag.x=e.clientX;drag.y=e.clientY;});
+canvas.addEventListener('pointerdown',e=>{if(mode==='welcome'||!ready||e.button!==0)return;takeOver();canvas.focus({preventScroll:true});if(e.pointerType==='mouse'){canvas.requestPointerLock?.();return;}drag={id:e.pointerId,x:e.clientX,y:e.clientY};canvas.setPointerCapture(e.pointerId);});
+canvas.addEventListener('pointermove',e=>{if(locked){targetYaw-=e.movementX*.003*sensitivity;targetPitch-=e.movementY*.0025*sensitivity;}else if(drag&&e.pointerId===drag.id){targetYaw-=(e.clientX-drag.x)*.003*sensitivity;targetPitch-=(e.clientY-drag.y)*.0025*sensitivity;drag.x=e.clientX;drag.y=e.clientY;}targetPitch=THREE.MathUtils.clamp(targetPitch,-.65,.9);});
 for(const event of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(event,()=>drag=null);
+document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===canvas;canvas.classList.toggle('pointer-locked',locked);if(!locked)drag=null;});
 for(const b of document.querySelectorAll('[data-move]')){
   b.addEventListener('pointerdown',e=>{e.preventDefault();takeOver();b.setPointerCapture(e.pointerId);touchMove.add(b.dataset.move);});
   for(const event of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(event,()=>touchMove.delete(b.dataset.move));

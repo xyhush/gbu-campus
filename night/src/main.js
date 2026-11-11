@@ -11,7 +11,7 @@ import './style.css';
 const root=document.querySelector('#scene'),audio=createAudio();
 let ready=false,game,world,demo=null,mode='title',quality='Smooth',sound=true,mapOpen=false,frame=0;
 let renderScale=.8,last=0,accumulator=0,uiClock=0,adaptClock=0,elapsed=0,freeze=false,reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let fps=60,frames=[],frameMetrics={mean:16.7,p95:16.7},drag=null,stepBob=0,qualityWarmup=8;
+let fps=60,frames=[],frameMetrics={mean:16.7,p95:16.7},drag=null,locked=false,stepBob=0,qualityWarmup=8;
 const key=new Set(),touch={x:0,z:0,interact:false,run:false},lookVector=new THREE.Vector3(),moonColor=new THREE.Color(0xa9cfdf);
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x172c3d);scene.fog=new THREE.Fog(0x243b47,80,355);
 const camera=new THREE.PerspectiveCamera(67,innerWidth/innerHeight,.08,600);camera.rotation.order='YXZ';scene.add(camera);
@@ -55,7 +55,7 @@ const consumed=new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','Arrow
 addEventListener('keydown',e=>{
   if((e.code==='Space'||e.code==='Enter')&&e.target.closest?.('button,a,input,select,textarea'))return;
   if(consumed.has(e.code)&&mode!=='title')e.preventDefault();if(e.repeat){key.add(e.code);return;}
-  if(e.code==='Escape'){if(mapOpen)toggleMap();else pause();return;}
+  if(e.code==='Escape'){if(locked)return;if(mapOpen)toggleMap();else pause();return;}
   if(mode!=='playing')return;
   if(e.code==='KeyM'){toggleMap();return;}
   if(demo||mapOpen)return;
@@ -73,9 +73,10 @@ addEventListener('pagehide',event=>{
 addEventListener('beforeunload',()=>{if(mode==='playing')pause();audio.stopSession();});
 addEventListener('pageshow',event=>{if(event.persisted){last=0;updateUI();}});
 if(import.meta.hot)import.meta.hot.dispose(()=>audio.dispose());
-renderer.domElement.addEventListener('pointerdown',e=>{if(mode!=='playing'||mapOpen||demo)return;drag={id:e.pointerId,x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId);audio.unlock();});
-renderer.domElement.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;look(e.clientX-drag.x,e.clientY-drag.y);drag.x=e.clientX;drag.y=e.clientY;});
+renderer.domElement.addEventListener('pointerdown',e=>{if(mode!=='playing'||mapOpen||demo)return;audio.unlock();if(e.pointerType==='mouse'){renderer.domElement.requestPointerLock?.();return;}drag={id:e.pointerId,x:e.clientX,y:e.clientY};renderer.domElement.setPointerCapture(e.pointerId);});
+renderer.domElement.addEventListener('pointermove',e=>{if(locked)look(e.movementX,e.movementY);else if(drag&&drag.id===e.pointerId){look(e.clientX-drag.x,e.clientY-drag.y);drag.x=e.clientX;drag.y=e.clientY;}});
 for(const name of ['pointerup','pointercancel','lostpointercapture'])renderer.domElement.addEventListener(name,()=>drag=null);
+document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===renderer.domElement;renderer.domElement.classList.toggle('pointer-locked',locked);if(!locked)drag=null;});
 function resize(){renderer.setPixelRatio(Math.min(devicePixelRatio,quality==='Detail'?1.25:renderScale));renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();}addEventListener('resize',resize);
 function input(){return {x:touch.x+(key.has('KeyD')||key.has('ArrowRight')?1:0)-(key.has('KeyA')||key.has('ArrowLeft')?1:0),z:touch.z+(key.has('KeyW')||key.has('ArrowUp')?1:0)-(key.has('KeyS')||key.has('ArrowDown')?1:0),run:touch.run||key.has('ShiftLeft')||key.has('ShiftRight'),interact:touch.interact||key.has('KeyE')};}
 function updateUI(){

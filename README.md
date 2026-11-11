@@ -38,6 +38,12 @@ $env:PORT = "5200"
 
 The launcher starts/checks the server on that port and opens http://127.0.0.1:5200/. Night mode is at http://127.0.0.1:5200/night/. You can also run `npm start` instead of the launcher after setting the same variable, then open the matching URL yourself. Use a whole-number port from 1 to 65535; if another app uses it, choose a different port. To return to the default in that PowerShell session, run `$env:PORT = $null`. This local port setting does not change the GitHub Pages URLs.
 
+### Desktop controls and look input
+
+- **Day tour:** after starting a visit, **click to switch view rotation mode**, then **slide to look** without holding a button. Press `Esc` to show the cursor; click the scene again to recapture it. Use `W`, `A`, `S`, `D` or the arrow keys to walk; hold `Shift` to move faster. Starting to walk or look during a guided visit gives control back to you.
+- **Haunted night:** **click to switch view rotation mode**, then **slide to look** without holding a button. Press `Esc` to show the cursor and click the scene again to recapture it. Use `W`, `A`, `S`, `D` or the arrow keys to walk; hold `Shift` to sprint. `F` toggles the torch, `E` interacts, `Space` kicks, `Q` rings the decoy bell and `M` opens the map.
+- **Touch and fallback:** touch screens, pen input and browsers that do not allow Pointer Lock still use click-and-drag. The cursor is hidden only while Pointer Lock is active.
+
 The original development checkout uses a junction to local Three.js/Vite dependencies; do not delete that node_modules junction recursively. Fresh checkouts create their own dependencies with `npm ci`.
 
 The Git repository includes `tour/`, `night/`, `shared/`, source assets, build/server tools and written evidence. Generated `dist/` and `release/`, dependencies, local `Old/` snapshots, screenshots, recordings and raw QA results are excluded. Evidence documents describe historical runs; their local capture paths are not included in this source repository.
